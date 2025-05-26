@@ -82,6 +82,11 @@
       transformText(bigText)
     }
 
+    function handleResize() {
+      console.log("a")
+      transformText("VERY WORD")
+    }
+
 
     function resetForm() {
       form.reset()
@@ -132,6 +137,8 @@
     }
 
     function init() {
+      window.addEventListener("resize", () => transformText(input.value))
+
       renderBigTexts(texts)
       showDashboard()
     }

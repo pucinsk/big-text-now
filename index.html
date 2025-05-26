@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BIG TEXT NOW</title>
+    <style>
+        [contenteditable]:focus {
+            outline: none;
+            box-shadow: none;
+            border: none;
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+</head>
+
+<body class="bg-stone-700 text-white">
+    <div id="dashboard" class="flex flex-col items-center ">
+        <div id="list">
+            <div class="bg-stone-600 rounded-full w-100 m-5 grow p-2">
+                <div class="flex items-center gap-1 px-1">
+                    <span>YOUR FIRST BIG TEXT</span>
+                    <div class="flex ml-auto gap-1">
+                        <button class="bg-none border-none text-white cursor-pointer">✏️</button>
+                        <button class="bg-none border-none text-white cursor-pointer">☆</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <form id="text-form" class="w-100 bg-stone-500 rounded-full p-2" onsubmit="handleSubmit(this, event)">
+            <input type="hidden" name="text" value="BIG TEXT NOW" />
+            <div class="flex items-center gap-1">
+                <button class="bg-none border-none text-white cursor-pointer px-1">×</button>
+                <div class="grow" contenteditable oninput="handleTextChange(this)">BIG TEXT NOW</div>
+                <div class="ml-auto">
+                    <button class="bg-none border-none text-white cursor-pointer px-2" type="submit">➤</button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <div hidden id="display" class="w-full h-screen flex flex-col justify-center items-center overflow-hidden p-4">
+        <button class="absolute top-0 left-0 bg-none border-none text-white cursor-pointer p-5"
+            onclick="hideDisplay()">×</button>
+        <p id="word-line" class="text-center font-bold leading-none"></p>
+    </div>
+
+    <script>
+        const dashboard = document.getElementById("dashboard")
+        const display = document.getElementById('display');
+        const wordLine = document.getElementById('word-line');
+
+        function hideDisplay() {
+            display.hidden = true
+            dashboard.hidden = false
+        }
+
+        function transformText(text) {
+            wordLine.style.fontSize = '100px';
+            wordLine.innerHTML = text;
+            const containerWidth = display.clientWidth;
+            const measuredWidth = wordLine.scrollWidth;
+            const scaleFactor = containerWidth / measuredWidth;
+            console.log(scaleFactor)
+            const fontSize = 100 * scaleFactor;
+            wordLine.style.fontSize = `${fontSize}px`;
+        }
+
+        function handleSubmit(form, event) {
+            event.preventDefault()
+            const formData = new FormData(form);
+            const formProps = Object.fromEntries(formData);
+
+            //
+            dashboard.hidden = true
+            display.hidden = false
+            transformText(formProps.text)
+            //
+        }
+
+        function handleTextChange(el) {
+            const form = document.getElementById("text-form")
+            const input = form.querySelector('input[name="text"]')
+            input.value = el.textContent
+        }
+
+        document.addEventListener("DOMContentLoaded", function (event) {
+            const messages = [
+                {
+                    text: "Hello, world!",
+                    isFavorite: true,
+                    createdAt: "2025-05-01T10:15:00Z",
+                    updatedAt: "2025-05-01T10:15:00Z"
+                },
+                {
+                    text: "Don't forget to hydrate 💧",
+                    isFavorite: false,
+                    createdAt: "2025-05-02T08:30:00Z",
+                    updatedAt: "2025-05-02T09:00:00Z"
+                },
+                {
+                    text: "nextpit is the bomb!",
+                    isFavorite: true,
+                    createdAt: "2025-05-03T14:42:00Z",
+                    updatedAt: "2025-05-03T14:42:00Z"
+                },
+                {
+                    text: "Meeting at 3pm ⏰",
+                    isFavorite: false,
+                    createdAt: "2025-05-04T11:05:00Z",
+                    updatedAt: "2025-05-04T11:15:00Z"
+                },
+                {
+                    text: "Check out this app!",
+                    isFavorite: true,
+                    createdAt: "2025-05-05T16:20:00Z",
+                    updatedAt: "2025-05-05T16:25:00Z"
+                }
+            ];
+
+            const list = document.getElementById("list")
+
+            messages.forEach(message => {
+                const listItemHTML = `
+                    <div class="bg-stone-600 rounded-full w-100 m-5 grow p-2">
+                        <div class="flex items-center gap-1 px-1">
+                            <span>${message.text}</span>
+                            <div class="flex ml-auto gap-1">
+                                <button class="bg-none border-none text-white cursor-pointer">✏️</button>
+                                <button class="bg-none border-none text-white cursor-pointer">${message.isFavorite ? "⭐️" : "☆"}</button>
+                            </div>
+                        </div>
+                    </div>
+                `
+
+                list.insertAdjacentHTML('beforeend', listItemHTML);
+            })
+        });
+    </script>
+</body>
+
+</html>

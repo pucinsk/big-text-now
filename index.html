@@ -30,9 +30,11 @@
     </form>
   </div>
 
-  <div hidden id="display" class="w-full h-screen flex flex-col justify-center items-center overflow-hidden p-4">
+  <div hidden id="display" class="w-full h-screen flex flex-col justify-center items-center overflow-hidden p-4 bg-stone-700">
     <button class="absolute top-0 left-0 bg-none border-none text-white cursor-pointer p-5"
       onclick="hideDisplay()">×</button>
+    <button class="absolute bottom-0 right-0 bg-none border-none text-white cursor-pointer p-5"
+      onclick="toggleFullScreen()">⛶</button>
     <p id="word-line" class="text-center font-bold leading-none"></p>
   </div>
 
@@ -44,6 +46,27 @@
     const list = document.getElementById("list")
     const input = form.querySelector('input[name="big-text"]')
     const texts = JSON.parse(localStorage.getItem("texts") ?? "[]")
+
+    function openFullscreen(elem) {
+      if (elem.requestFullscreen) {
+        elem.requestFullscreen();
+      } else if (elem.webkitRequestFullscreen) { /* Safari */
+        elem.webkitRequestFullscreen();
+      } else if (elem.msRequestFullscreen) { /* IE11 */
+        elem.msRequestFullscreen();
+      }
+    }
+
+    /* Close fullscreen */
+    function closeFullscreen() {
+      if (document.exitFullscreen) {
+        document.exitFullscreen();
+      } else if (document.webkitExitFullscreen) { /* Safari */
+        document.webkitExitFullscreen();
+      } else if (document.msExitFullscreen) { /* IE11 */
+        document.msExitFullscreen();
+      }
+    }
 
     function showDashboard() {
       dashboard.hidden = false
@@ -60,17 +83,14 @@
       return Object.fromEntries(formData);
     }
 
-    function buildBigText(text) {
-      return {
+    function addBigTextToLS(text) {
+      const newItem = {
         text,
         isFavorite: false,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       }
-    }
-
-    function addBigTextToLS(text) {
-      localStorage.setItem("texts", JSON.stringify([buildBigText(text), ...texts]))
+      localStorage.setItem("texts", JSON.stringify([newItem, ...texts]))
     }
 
     function onFormSubmit(_, event) {
@@ -80,6 +100,15 @@
       const bigText = formData["big-text"]
       addBigTextToLS(bigText)
       transformText(bigText)
+      openFullscreen(display)
+    }
+
+    function toggleFullScreen() {
+      if (!fullScreen) {
+        openFullscreen(display)
+      } else {
+        closeFullscreen()
+      }
     }
 
     function handleResize() {

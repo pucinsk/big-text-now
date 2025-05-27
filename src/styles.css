@@ -1,0 +1,7 @@
+@import "tailwindcss";
+
+[contenteditable]:focus {
+  outline: none;
+  box-shadow: none;
+  border: none;
+}

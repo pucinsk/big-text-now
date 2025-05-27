@@ -1,189 +1,41 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>BIG TEXT NOW</title>
-  <style>
-    [contenteditable]:focus {
-      outline: none;
-      box-shadow: none;
-      border: none;
-    }
-  </style>
-  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-</head>
-
-<body class="bg-stone-700 text-white">
-
-  <div id="dashboard" class="h-screen flex flex-col items-center">
-    <div class="overflow-y-auto flex-1 w-100 my-5">
-      <div class="flex text-left">
-        <h3>My BIG texts</h3>
-        <div class="ml-auto">
-          <button id="clear-history-btn" class="cursor-pointer" onclick="clearHistory()">Clear History</button>
-        </div>
-      </div>
-      <div id="list"></div>
-      <div hidden id="empty-list" class="flex flex-col items-center mt-10" >
-        <h3 class="font-bold">You have no Big Texts yet</h3>
-        <p>Add new now</p>
-      </div>
-    </div>
-
-    <form id="big-text-form" class="w-100 bg-stone-500 rounded-full my-5 p-4" onsubmit="onFormSubmit(this, event)">
-      <input type="hidden" name="big-text"/>
-      <div class="flex items-center gap-1">
-        <span class="bg-none border-none text-white cursor-pointer px-1" onclick="resetForm()">×</span>
-        <div id="big-text" class="grow" contenteditable oninput="onBigTextInput(this, event)"></div>
-        <div class="ml-auto">
-          <button class="bg-none border-none text-white cursor-pointer px-2" type="submit">➤</button>
-        </div>
-      </div>
-    </form>
-  </div>
-
-  <div hidden id="display"
-    class="w-full h-screen flex flex-col justify-center items-center overflow-hidden p-4 bg-stone-700">
-    <button class="absolute top-0 left-0 bg-none border-none text-white cursor-pointer p-5"
-      onclick="showDashboard()">×</button>
-    <button class="absolute bottom-0 right-0 bg-none border-none text-white cursor-pointer p-5"
-      onclick="toggleFullScreen()">⛶</button>
-    <p id="word-line" class="text-center font-bold leading-none"></p>
-  </div>
-
-  <script>
-    const dashboard = document.getElementById("dashboard")
-    const display = document.getElementById('display');
-    const wordLine = document.getElementById('word-line');
-    const form = document.getElementById("big-text-form")
-    const list = document.getElementById("list")
-    const input = form.querySelector('input[name="big-text"]')
-
-    function openFullscreen(elem) {
-      if (elem.requestFullscreen) {
-        elem.requestFullscreen();
-      } else if (elem.webkitRequestFullscreen) { /* Safari */
-        elem.webkitRequestFullscreen();
-      } else if (elem.msRequestFullscreen) { /* IE11 */
-        elem.msRequestFullscreen();
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>BIG TEXT NOW</title>
+    <link
+      rel="apple-touch-icon"
+      sizes="180x180"
+      href="./public/favicon/apple-touch-icon.png"
+    />
+    <link
+      rel="icon"
+      type="image/png"
+      sizes="32x32"
+      href="./public/favicon/favicon-32x32.png"
+    />
+    <link
+      rel="icon"
+      type="image/png"
+      sizes="16x16"
+      href="./public/favicon/favicon-16x16.png"
+    />
+    <link rel="manifest" href="./public/favicon/site.webmanifest" />
+    <link href="./dist/styles.css" rel="stylesheet" />
+    <script
+      async
+      src="https://ga.jspm.io/npm:es-module-shims@2.5.1/dist/es-module-shims.js"
+    ></script>
+    <script type="importmap">
+      {
+        "imports": {
+          "preact": "https://esm.sh/htm/preact/standalone.mjs"
+        }
       }
-    }
+    </script>
+    <script type="module" src="./src/index.js"></script>
+  </head>
 
-    function closeFullscreen() {
-      if (document.exitFullscreen) {
-        document.exitFullscreen();
-      } else if (document.webkitExitFullscreen) { /* Safari */
-        document.webkitExitFullscreen();
-      } else if (document.msExitFullscreen) { /* IE11 */
-        document.msExitFullscreen();
-      }
-    }
-
-    function toggleFullScreen() {
-      if (!fullScreen) {
-        openFullscreen(display)
-      } else {
-        closeFullscreen()
-      }
-    }
-
-    function clearHistory() {
-      localStorage.removeItem("texts")
-      showDashboard()
-    }
-
-    function showDashboard() {
-      renderBigTexts()
-      document.getElementById("clear-history-btn").parentElement.hidden = list.childNodes.length
-      dashboard.hidden = false
-      display.hidden = true
-    }
-
-    function showBigText() {
-      display.hidden = false
-      dashboard.hidden = true
-    }
-
-    function addBigText(content) {
-      const newItem = {
-        content,
-        isFavorite: false,
-      }
-      const texts = JSON.parse(localStorage.getItem("texts") ?? "[]")
-      texts.push(newItem)
-      localStorage.setItem("texts", JSON.stringify(texts))
-    }
-
-    function onBigTextInput(input, _event) {
-      const bigTextHiddenInput = form.querySelector('input[name="big-text"]')
-      bigTextHiddenInput.value = input.textContent
-    }
-
-    function onFormSubmit(form, event) {
-      event.preventDefault()
-      const formData = new FormData(form);
-      const formProps = Object.fromEntries(formData);
-      addBigText(formProps["big-text"])
-      showBigText()
-      transformText()
-    }
-
-    function resetForm() {
-      form.reset()
-      setBigText("")
-    }
-
-    function transformText() {
-      wordLine.style.fontSize = '100px';
-      wordLine.innerHTML = bigText;
-      const scaleFactor = display.clientWidth / wordLine.scrollWidth;
-      const fontSize = 100 * scaleFactor;
-      wordLine.style.fontSize = `${fontSize}px`;
-    }
-
-    function renderBigTextItem(text) {
-      const container = document.createElement("div");
-      container.className = "bg-stone-600 rounded-full w-100 grow my-5 p-2";
-
-      container.innerHTML = `
-<div class="flex items-center gap-1 px-1">
-  <span>${text.content}</span>
-  <div class="flex ml-auto gap-1">
-  <button class="bg-none border-none text-white cursor-pointer">✏️</button>
-  <button class="bg-none border-none text-white cursor-pointer">${text.isFavorite ? "⭐️" : "☆"}</button>
-  </div>
-</div>
-`;
-
-      return container;
-    }
-
-    function renderBigTexts() {
-      list.innerHTML = "";
-      if (texts.length) {
-        texts.forEach(text => {
-          const listItem = renderBigTextItem(text);
-          list.appendChild(listItem);
-        });
-      }
-      document.getElementById("empty-list").hidden = !!texts.length
-    }
-
-    function onWindowResize() {
-      if (!display.hidden) {
-        transformText(bigText)
-      }
-    }
-
-    function init() {
-      window.addEventListener("resize", onWindowResize)
-      showDashboard()
-    }
-
-    document.addEventListener("DOMContentLoaded", init)
-  </script>
-</body>
-
+  <body class="bg-stone-700 text-white"></body>
 </html>

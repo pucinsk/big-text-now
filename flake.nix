@@ -13,7 +13,7 @@
       devShells.aarch64-darwin.default = pkgs.mkShell {
         packages = with pkgs; [
           git
-          bun
+          nodejs_24
         ];
       };
     };

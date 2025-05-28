@@ -1,13 +1,22 @@
 import { html, render, useState, useEffect, useRef } from "preact"
 
-function BigTextsListItem({ text }) {
+function BigTextsListItem({ text, onChange }) {
+  const toggleIsFavorite = () => {
+    onChange({ isFavorite: !text.isFavorite })
+  }
+
   return html`
     <div class="mt-5 rounded-full bg-stone-600 p-2">
-      <div class="flex items-center gap-1 px-1">
-        <span>${text.content}</span>
+      <div class="flex">
+        <span onClick="${() => navigate("show", { bigText: text.content })}" class="grow px-2"
+          >${text.content}</span
+        >
         <div class="ml-auto flex gap-1">
           <button class="cursor-pointer border-none bg-none text-white">✏️</button>
-          <button class="cursor-pointer border-none bg-none text-white">
+          <button
+            class="cursor-pointer border-none bg-none text-white"
+            onClick="${toggleIsFavorite}"
+          >
             ${text.isFavorite ? "⭐️" : "☆"}
           </button>
         </div>
@@ -25,11 +34,10 @@ function EmptyBigTextsList() {
   `
 }
 
-function BigTextForm({ onSubmit, onChange }) {
+function BigTextForm({ onSubmit }) {
   const bigTextRef = useRef(null)
 
   const resetForm = () => {
-    onChange("")
     if (bigTextRef.current) {
       bigTextRef.current.textContent = ""
     }
@@ -37,19 +45,20 @@ function BigTextForm({ onSubmit, onChange }) {
 
   return html`
     <div class="mt-5 flex flex-col justify-center rounded-full bg-stone-500 p-2">
-      <input type="hidden" name="big-text" />
       <div class="flex">
         <span class="cursor-pointer border-none bg-none px-2 text-white" onClick="${resetForm}"
           >×</span
         >
-        <div
-          class="grow"
-          contenteditable
-          ref="${bigTextRef}"
-          onInput="${(e) => onChange(e.target.textContent)}"
-        ></div>
+        <div class="grow" contenteditable ref="${bigTextRef}"></div>
         <div class="ml-auto">
-          <button class="cursor-pointer border-none bg-none px-2 text-white" onClick="${onSubmit}">
+          <button
+            class="cursor-pointer border-none bg-none px-2 text-white"
+            onClick="${() =>
+              onSubmit({
+                content: bigTextRef.current.textContent,
+                isFavorite: false,
+              })}"
+          >
             ➤
           </button>
         </div>
@@ -58,30 +67,29 @@ function BigTextForm({ onSubmit, onChange }) {
   `
 }
 
-function App() {
-  const initialTexts = (() => {
-    const textsJson = localStorage.getItem("texts")
-    if (textsJson) {
-      return JSON.parse(textsJson)
-    }
+function getInitialTexts() {
+  try {
+    return JSON.parse(localStorage.getItem("texts")) || []
+  } catch {
     return []
-  })()
+  }
+}
 
-  const [bigText, setBigText] = useState("")
-  const [texts, setTexts] = useState(initialTexts)
+function App() {
+  const [texts, setTexts] = useState(getInitialTexts)
+  const updateTextsLS = (newTexts) => localStorage.setItem("texts", JSON.stringify(newTexts))
 
-  const clearHistory = () => {
-    setTexts([])
-    localStorage.removeItem("texts")
+  useEffect(() => updateTextsLS(texts), [texts])
+
+  const updateText = (index, newText) => {
+    const updated = [...texts]
+    updated[index] = { ...updated[index], ...newText }
+    setTexts(updated)
   }
 
-  const submitForm = () => {
-    const text = {
-      content: bigText,
-      isFavorite: false,
-    }
-    localStorage.setItem("texts", JSON.stringify([text, ...texts]))
-    navigate("show", { bigText: bigText })
+  const submitForm = (text) => {
+    updateTextsLS([text, ...texts])
+    navigate("show", { bigText: text.content })
   }
 
   return html`
@@ -90,28 +98,30 @@ function App() {
         <div class="flex text-left">
           <h3>My BIG texts</h3>
           <div hidden="${!texts.length}" class="ml-auto">
-            <button class="cursor-pointer" onClick=${() => clearHistory()}>Clear History</button>
+            <button class="cursor-pointer" onClick=${() => setTexts([])}>Clear History</button>
           </div>
         </div>
-        ${texts.length
-          ? texts.map((t) => html`<${BigTextsListItem} text=${t} />`)
-          : html`<${EmptyBigTextsList} />`}
-        ${html`<${BigTextForm} onSubmit="${submitForm}" onChange=${setBigText} />`}
+        <div class="grow overflow-y-auto">
+          ${texts.length
+            ? texts.map(
+                (t, i) =>
+                  html`<${BigTextsListItem}
+                    text=${t}
+                    onChange="${(changes) => updateText(i, changes)}"
+                  />`,
+              )
+            : html`<${EmptyBigTextsList} />`}
+        </div>
+        ${html`<${BigTextForm} onSubmit="${submitForm}" />`}
       </div>
     </div>
   `
 }
 
 function BigText() {
-  const [bigText, setBigText] = useState("")
+  const bigText = new URLSearchParams(location.search).get("bigText")
   const bigTextDisplayRef = useRef(null)
   const bigTextRef = useRef(null)
-
-  useEffect(() => {
-    const url = new URL(location)
-    const params = Object.fromEntries(url.searchParams)
-    setBigText(params.bigText)
-  }, [location])
 
   const fontSize = () => {
     bigTextRef.current.style.fontSize = "100px"
@@ -128,7 +138,12 @@ function BigText() {
   }
 
   useEffect(() => {
+    if (bigTextRef.current && bigTextDisplayRef.current) {
+      bigTextRef.current.style.fontSize = `${fontSize()}px`
+    }
+
     window.addEventListener("resize", onResize)
+
     return () => window.removeEventListener("resize", onResize)
   }, [])
 
@@ -234,5 +249,6 @@ if (redirectedPath) {
   history.replaceState(null, "", redirectedPath)
 }
 
-document.addEventListener("popstate", renderRoute)
+window.addEventListener("popstate", renderRoute)
+
 renderRoute()

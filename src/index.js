@@ -1,20 +1,18 @@
 import { html, render, useState, useEffect, useRef } from "preact"
 
-function BigTextsListItem({ text, onChange }) {
-  const toggleIsFavorite = () => {
-    onChange({ isFavorite: !text.isFavorite })
-  }
+const BigTextsListItem = ({ text, onChange }) => {
+  const toggleIsFavorite = () => onChange({ isFavorite: !text.isFavorite })
 
   return html`
-    <div class="mt-5 rounded-full bg-stone-600 p-2">
-      <div class="flex">
-        <span onClick="${() => navigate("show", { bigText: text.content })}" class="grow px-2"
-          >${text.content}</span
+    <div className="mt-5 rounded-full bg-stone-600 p-2">
+      <div className="flex">
+        <span onClick="${() => navigate("show", { bigText: text.content })}" className="grow px-2"
+          >${text.content.replace(/<br\s*\/?>/gi, "⏎")}</span
         >
-        <div class="ml-auto flex gap-1">
-          <button class="cursor-pointer border-none bg-none text-white">✏️</button>
+        <div className="ml-auto flex gap-1">
+          <button className="cursor-pointer border-none bg-none text-white">✏️</button>
           <button
-            class="cursor-pointer border-none bg-none text-white"
+            className="cursor-pointer border-none bg-none text-white"
             onClick="${toggleIsFavorite}"
           >
             ${text.isFavorite ? "⭐️" : "☆"}
@@ -25,39 +23,41 @@ function BigTextsListItem({ text, onChange }) {
   `
 }
 
-function EmptyBigTextsList() {
-  return html`
-    <div class="mt-10 flex flex-col items-center">
-      <h3 class="font-bold">You have no Big Texts yet</h3>
-      <p>Add new now</p>
-    </div>
-  `
-}
+const EmptyBigTextsList = ({ onAddTextClick }) => html`
+  <div className="mt-10 flex flex-col items-center">
+    <h3 className="font-bold">You have no Big Texts yet</h3>
+    <span className="cursor-pointer" onClick="${onAddTextClick}">Add new now</span>
+  </div>
+`
 
-function BigTextForm({ onSubmit }) {
-  const bigTextRef = useRef(null)
-
-  const resetForm = () => {
-    if (bigTextRef.current) {
-      bigTextRef.current.textContent = ""
+const BigTextForm = ({ bigTextRef, onSubmit }) => {
+  const submitForm = () => {
+    console.log(bigTextRef.current.innerText)
+    onSubmit({
+      content: bigTextRef.current.innerHTML,
+      isFavorite: false,
+    })
+  }
+  const onKeyPress = (e) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault()
+      submitForm()
     }
   }
 
   return html`
-    <div class="mt-5 flex flex-col justify-center rounded-full bg-stone-500 p-2">
-      <div class="flex">
-        <span class="cursor-pointer border-none bg-none px-2 text-white" onClick="${resetForm}"
+    <div className="mt-5 flex flex-col justify-center rounded-full bg-stone-500 p-2">
+      <div className="flex">
+        <span
+          className="cursor-pointer border-none bg-none px-2 text-white"
+          onClick="${() => (bigTextRef.current.textContent = "")}"
           >×</span
         >
-        <div class="grow" contenteditable ref="${bigTextRef}"></div>
-        <div class="ml-auto">
+        <div className="grow" contenteditable ref="${bigTextRef}" onKeyPress="${onKeyPress}"></div>
+        <div className="ml-auto">
           <button
-            class="cursor-pointer border-none bg-none px-2 text-white"
-            onClick="${() =>
-              onSubmit({
-                content: bigTextRef.current.textContent,
-                isFavorite: false,
-              })}"
+            className="cursor-pointer border-none bg-none px-2 text-white"
+            onClick="${submitForm}"
           >
             ➤
           </button>
@@ -67,17 +67,23 @@ function BigTextForm({ onSubmit }) {
   `
 }
 
-function getInitialTexts() {
+const getInitialTexts = () => {
   try {
     return JSON.parse(localStorage.getItem("texts")) || []
-  } catch {
+  } catch (e) {
+    console.warn("Corrupted localStorage:", e)
     return []
   }
 }
 
-function App() {
+const App = () => {
   const [texts, setTexts] = useState(getInitialTexts)
+  const bigTextRef = useRef(null)
   const updateTextsLS = (newTexts) => localStorage.setItem("texts", JSON.stringify(newTexts))
+
+  useEffect(() => {
+    if (!texts.length) bigTextRef.current?.focus()
+  }, [])
 
   useEffect(() => updateTextsLS(texts), [texts])
 
@@ -93,15 +99,15 @@ function App() {
   }
 
   return html`
-    <div class="flex h-screen justify-center">
-      <div class="flex w-full flex-col sm:w-1/2 lg:w-1/3">
-        <div class="flex text-left">
+    <div className="flex h-screen justify-center p-2">
+      <div className="flex w-full flex-col sm:w-1/2 lg:w-1/3">
+        <div className="flex text-left">
           <h3>My BIG texts</h3>
-          <div hidden="${!texts.length}" class="ml-auto">
-            <button class="cursor-pointer" onClick=${() => setTexts([])}>Clear History</button>
+          <div hidden="${!texts.length}" className="ml-auto">
+            <button className="cursor-pointer" onClick=${() => setTexts([])}>Clear History</button>
           </div>
         </div>
-        <div class="grow overflow-y-auto">
+        <div className="grow overflow-y-auto">
           ${texts.length
             ? texts.map(
                 (t, i) =>
@@ -110,15 +116,15 @@ function App() {
                     onChange="${(changes) => updateText(i, changes)}"
                   />`,
               )
-            : html`<${EmptyBigTextsList} />`}
+            : html`<${EmptyBigTextsList} onAddTextClick="${() => bigTextRef.current?.focus()}" />`}
         </div>
-        ${html`<${BigTextForm} onSubmit="${submitForm}" />`}
+        ${html`<${BigTextForm} bigTextRef="${bigTextRef}" onSubmit="${submitForm}" />`}
       </div>
     </div>
   `
 }
 
-function BigText() {
+const BigText = () => {
   const bigText = new URLSearchParams(location.search).get("bigText")
   const bigTextDisplayRef = useRef(null)
   const bigTextRef = useRef(null)
@@ -143,7 +149,6 @@ function BigText() {
     }
 
     window.addEventListener("resize", onResize)
-
     return () => window.removeEventListener("resize", onResize)
   }, [])
 
@@ -151,28 +156,14 @@ function BigText() {
     bigTextRef.current.style.fontSize = `${fontSize()}px`
   }, [bigText])
 
-  function openFullscreen(elem) {
-    if (elem.requestFullscreen) {
-      elem.requestFullscreen()
-    } else if (elem.webkitRequestFullscreen) {
-      /* Safari */
-      elem.webkitRequestFullscreen()
-    } else if (elem.msRequestFullscreen) {
-      /* IE11 */
-      elem.msRequestFullscreen()
-    }
+  const openFullscreen = (elem) => {
+    elem.requestFullscreen?.() || elem.webkitRequestFullscreen?.() || elem.msRequestFullscreen?.()
   }
 
-  function closeFullscreen() {
-    if (document.exitFullscreen) {
-      document.exitFullscreen()
-    } else if (document.webkitExitFullscreen) {
-      /* Safari */
-      document.webkitExitFullscreen()
-    } else if (document.msExitFullscreen) {
-      /* IE11 */
-      document.msExitFullscreen()
-    }
+  const closeFullscreen = () => {
+    document.exitFullscreen?.() ||
+      document.webkitExitFullscreen?.() ||
+      document.msExitFullscreen?.()
   }
 
   const toggleFullScreen = () =>
@@ -181,21 +172,25 @@ function BigText() {
   return html`
     <div
       ref="${bigTextDisplayRef}"
-      class="flex h-screen w-full flex-col items-center justify-center overflow-hidden bg-stone-700 p-4"
+      className="flex h-screen w-full flex-col items-center justify-center overflow-hidden bg-stone-700 p-4"
     >
       <button
         onClick="${() => navigate("")}"
-        class="absolute top-0 left-0 cursor-pointer border-none bg-none p-5 text-white"
+        className="absolute top-0 left-0 cursor-pointer border-none bg-none p-5 text-white"
       >
         ×
       </button>
       <button
-        class="absolute right-0 bottom-0 cursor-pointer border-none bg-none p-5 text-white"
+        className="absolute right-0 bottom-0 cursor-pointer border-none bg-none p-5 text-white"
         onClick="${toggleFullScreen}"
       >
         ⛶
       </button>
-      <p ref="${bigTextRef}" class="text-center leading-none font-bold">${bigText}</p>
+      <p
+        ref=${bigTextRef}
+        class="text-center leading-none font-bold"
+        dangerouslySetInnerHTML=${{ __html: bigText }}
+      ></p>
     </div>
   `
 }
@@ -205,26 +200,12 @@ const routes = {
   "/show": BigText,
 }
 
-const buildPath = (path) => {
-  if (location.origin.includes("github.io")) {
-    return `/big-text-now/${path}`
-  } else {
-    return path
-  }
-}
+const getPathPrefix = () => (location.origin.includes("github.io") ? "/big-text-now" : "")
 
-const pathname = () => {
-  if (location.origin.includes("github.io")) {
-    return location.pathname
-      .split("/")
-      .filter((s) => s != "big-text-now")
-      .join("/")
-  } else {
-    return location.pathname
-  }
-}
+const buildPath = (path) => `${getPathPrefix()}/${path}`
+const pathname = () => location.pathname.replace(getPathPrefix(), "")
 
-function navigate(path, params = {}) {
+const navigate = (path, params = {}) => {
   const url = new URL(buildPath(path), location.origin)
   Object.entries(params).forEach(([key, value]) => {
     url.searchParams.set(key, value)
@@ -233,13 +214,12 @@ function navigate(path, params = {}) {
   renderRoute()
 }
 
-function renderRoute() {
+const renderRoute = () => {
   const routeComponent = routes[pathname()]
-  if (routeComponent) {
-    render(html`<${routeComponent} />`, document.body)
-  } else {
-    render(html`<h1>404 - Page not found</h1>`, document.body)
-  }
+  render(
+    routeComponent ? html`<${routeComponent} />` : html`<h1>404 - Page not found</h1>`,
+    document.body,
+  )
 }
 
 const params = new URLSearchParams(location.search)

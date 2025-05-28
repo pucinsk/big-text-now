@@ -115,7 +115,11 @@ function BigText() {
 
   const fontSize = () => {
     bigTextRef.current.style.fontSize = "100px"
-    const scaleFactor = bigTextDisplayRef.current.clientWidth / bigTextRef.current.scrollWidth
+
+    const widthScale = bigTextDisplayRef.current.clientHeight / bigTextRef.current.scrollHeight
+    const heightScale = bigTextDisplayRef.current.clientWidth / bigTextRef.current.scrollWidth
+
+    const scaleFactor = Math.min(widthScale, heightScale)
     return Math.round(100 * scaleFactor)
   }
 

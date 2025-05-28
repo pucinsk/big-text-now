@@ -6,13 +6,15 @@
   "scripts": {
     "build:css": "npx @tailwindcss/cli -i ./src/styles.css -o ./dist/styles.css",
     "build": "npm run build:css",
-    "dev": "npm run build:css -- --watch"
+    "dev": "npm run build:css -- --watch",
+    "pretty": "prettier --write \"src/**/*.js\""
   },
   "devDependencies": {
     "@eslint/js": "^9.27.0",
     "eslint": "^9.27.0",
     "eslint-config-prettier": "^10.1.5",
     "globals": "^16.2.0",
-    "prettier": "3.5.3"
+    "prettier": "^3.5.3",
+    "prettier-plugin-tailwindcss": "^0.6.11"
   }
 }

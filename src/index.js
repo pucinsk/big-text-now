@@ -2,12 +2,12 @@ import { html, render, useState, useEffect, useRef } from "preact"
 
 function BigTextsListItem({ text }) {
   return html`
-    <div class="bg-stone-600 rounded-full grow my-5 p-2">
+    <div class="mt-5 rounded-full bg-stone-600 p-2">
       <div class="flex items-center gap-1 px-1">
         <span>${text.content}</span>
-        <div class="flex ml-auto gap-1">
-          <button class="bg-none border-none text-white cursor-pointer">✏️</button>
-          <button class="bg-none border-none text-white cursor-pointer">
+        <div class="ml-auto flex gap-1">
+          <button class="cursor-pointer border-none bg-none text-white">✏️</button>
+          <button class="cursor-pointer border-none bg-none text-white">
             ${text.isFavorite ? "⭐️" : "☆"}
           </button>
         </div>
@@ -18,14 +18,47 @@ function BigTextsListItem({ text }) {
 
 function EmptyBigTextsList() {
   return html`
-    <div class="flex flex-col items-center mt-10">
+    <div class="mt-10 flex flex-col items-center">
       <h3 class="font-bold">You have no Big Texts yet</h3>
       <p>Add new now</p>
     </div>
   `
 }
 
-function Dashboard({ bigText, setBigText, navigator }) {
+function BigTextForm({ onSubmit, onChange }) {
+  const bigTextRef = useRef(null)
+
+  const resetForm = () => {
+    onChange("")
+    if (bigTextRef.current) {
+      bigTextRef.current.textContent = ""
+    }
+  }
+
+  return html`
+    <div class="mt-5 flex flex-col justify-center rounded-full bg-stone-500 p-2">
+      <input type="hidden" name="big-text" />
+      <div class="flex">
+        <span class="cursor-pointer border-none bg-none px-2 text-white" onClick="${resetForm}"
+          >×</span
+        >
+        <div
+          class="grow"
+          contenteditable
+          ref="${bigTextRef}"
+          onInput="${(e) => onChange(e.target.textContent)}"
+        ></div>
+        <div class="ml-auto">
+          <button class="cursor-pointer border-none bg-none px-2 text-white" onClick="${onSubmit}">
+            ➤
+          </button>
+        </div>
+      </div>
+    </div>
+  `
+}
+
+function App() {
   const initialTexts = (() => {
     const textsJson = localStorage.getItem("texts")
     if (textsJson) {
@@ -34,19 +67,12 @@ function Dashboard({ bigText, setBigText, navigator }) {
     return []
   })()
 
+  const [bigText, setBigText] = useState("")
   const [texts, setTexts] = useState(initialTexts)
-  const bigTextRef = useRef(null)
 
   const clearHistory = () => {
     setTexts([])
     localStorage.removeItem("texts")
-  }
-
-  const resetForm = () => {
-    setBigText("")
-    if (bigTextRef.current) {
-      bigTextRef.current.textContent = ""
-    }
   }
 
   const submitForm = () => {
@@ -55,59 +81,37 @@ function Dashboard({ bigText, setBigText, navigator }) {
       isFavorite: false,
     }
     localStorage.setItem("texts", JSON.stringify([text, ...texts]))
-    navigator.bigText()
+    navigate("show", { bigText: bigText })
   }
 
   return html`
-    <div class="min-h-screen flex justify-center px-4">
-      <div class="flex flex-col w-full sm:w-1/2 lg:w-1/3 space-y-4">
-        <div class="overflow-y-auto flex-1 my-5">
-          <div class="flex text-left">
-            <h3>My BIG texts</h3>
-            ${!!texts.length &&
-            html`
-              <div class="ml-auto">
-                <button class="cursor-pointer" onClick=${() => clearHistory()}>
-                  Clear History
-                </button>
-              </div>
-            `}
-          </div>
-          ${texts.length
-            ? texts.map((t) => html`<${BigTextsListItem} text=${t} />`)
-            : html`<${EmptyBigTextsList} />`}
-        </div>
-
-        <div class="bg-stone-500 rounded-full my-5 p-4">
-          <input type="hidden" name="big-text" />
-          <div class="flex items-center gap-1">
-            <span class="bg-none border-none text-white cursor-pointer px-1" onClick="${resetForm}"
-              >×</span
-            >
-            <div
-              class="grow"
-              contenteditable
-              ref="${bigTextRef}"
-              onInput="${(e) => setBigText(e.target.textContent)}"
-            ></div>
-            <div class="ml-auto">
-              <button
-                class="bg-none border-none text-white cursor-pointer px-2"
-                onClick="${submitForm}"
-              >
-                ➤
-              </button>
-            </div>
+    <div class="flex h-screen justify-center">
+      <div class="flex w-full flex-col sm:w-1/2 lg:w-1/3">
+        <div class="flex text-left">
+          <h3>My BIG texts</h3>
+          <div hidden="${!texts.length}" class="ml-auto">
+            <button class="cursor-pointer" onClick=${() => clearHistory()}>Clear History</button>
           </div>
         </div>
+        ${texts.length
+          ? texts.map((t) => html`<${BigTextsListItem} text=${t} />`)
+          : html`<${EmptyBigTextsList} />`}
+        ${html`<${BigTextForm} onSubmit="${submitForm}" onChange=${setBigText} />`}
       </div>
     </div>
   `
 }
 
-function BigText({ bigText, navigator }) {
+function BigText() {
+  const [bigText, setBigText] = useState("")
   const bigTextDisplayRef = useRef(null)
   const bigTextRef = useRef(null)
+
+  useEffect(() => {
+    const url = new URL(location)
+    const params = Object.fromEntries(url.searchParams)
+    setBigText(params.bigText)
+  }, [location])
 
   const fontSize = () => {
     bigTextRef.current.style.fontSize = "100px"
@@ -158,46 +162,73 @@ function BigText({ bigText, navigator }) {
   return html`
     <div
       ref="${bigTextDisplayRef}"
-      class="w-full h-screen flex flex-col justify-center items-center overflow-hidden p-4 bg-stone-700"
+      class="flex h-screen w-full flex-col items-center justify-center overflow-hidden bg-stone-700 p-4"
     >
       <button
-        onClick="${navigator.dashboard}"
-        class="absolute top-0 left-0 bg-none border-none text-white cursor-pointer p-5"
+        onClick="${() => navigate("")}"
+        class="absolute top-0 left-0 cursor-pointer border-none bg-none p-5 text-white"
       >
         ×
       </button>
       <button
-        class="absolute bottom-0 right-0 bg-none border-none text-white cursor-pointer p-5"
+        class="absolute right-0 bottom-0 cursor-pointer border-none bg-none p-5 text-white"
         onClick="${toggleFullScreen}"
       >
         ⛶
       </button>
-      <p ref="${bigTextRef}" class="text-center font-bold leading-none">${bigText}</p>
+      <p ref="${bigTextRef}" class="text-center leading-none font-bold">${bigText}</p>
     </div>
   `
 }
 
-function App() {
-  const [bigText, setBigText] = useState("dashboard")
-  const [currentPage, setCurrentPage] = useState("dashboard")
-  const navigator = {
-    dashboard: () => {
-      setCurrentPage("dashboard")
-    },
-    bigText: () => {
-      setCurrentPage("bigText")
-    },
-  }
-
-  if (currentPage === "bigText") {
-    return html`<${BigText} bigText="${bigText}" navigator="${navigator}" />`
-  }
-
-  return html`
-    <${Dashboard} bigText="${bigText}" setBigText="${setBigText}" navigator="${navigator}" />
-  `
+const routes = {
+  "/": App,
+  "/show": BigText,
 }
 
-document.addEventListener("DOMContentLoaded", () => {
-  render(html`<${App} />`, document.body)
-})
+const buildPath = (path) => {
+  if (location.origin.includes("github.io")) {
+    return `/big-text-now/${path}`
+  } else {
+    return path
+  }
+}
+
+const pathname = () => {
+  if (location.origin.includes("github.io")) {
+    return location.pathname
+      .split("/")
+      .filter((s) => s != "big-text-now")
+      .join("/")
+  } else {
+    return location.pathname
+  }
+}
+
+function navigate(path, params = {}) {
+  const url = new URL(buildPath(path), location.origin)
+  Object.entries(params).forEach(([key, value]) => {
+    url.searchParams.set(key, value)
+  })
+  history.pushState({}, "", url)
+  renderRoute()
+}
+
+function renderRoute() {
+  const routeComponent = routes[pathname()]
+  if (routeComponent) {
+    render(html`<${routeComponent} />`, document.body)
+  } else {
+    render(html`<h1>404 - Page not found</h1>`, document.body)
+  }
+}
+
+const params = new URLSearchParams(location.search)
+const redirectedPath = params.get("redirect")
+
+if (redirectedPath) {
+  history.replaceState(null, "", redirectedPath)
+}
+
+document.addEventListener("popstate", renderRoute)
+renderRoute()

@@ -1,4 +1,4 @@
-import { html, render, useState, useEffect, useRef } from "preact";
+import { html, render, useState, useEffect, useRef } from "preact"
 
 function BigTextsListItem({ text }) {
   return html`
@@ -6,16 +6,14 @@ function BigTextsListItem({ text }) {
       <div class="flex items-center gap-1 px-1">
         <span>${text.content}</span>
         <div class="flex ml-auto gap-1">
-          <button class="bg-none border-none text-white cursor-pointer">
-            ✏️
-          </button>
+          <button class="bg-none border-none text-white cursor-pointer">✏️</button>
           <button class="bg-none border-none text-white cursor-pointer">
             ${text.isFavorite ? "⭐️" : "☆"}
           </button>
         </div>
       </div>
     </div>
-  `;
+  `
 }
 
 function EmptyBigTextsList() {
@@ -24,41 +22,41 @@ function EmptyBigTextsList() {
       <h3 class="font-bold">You have no Big Texts yet</h3>
       <p>Add new now</p>
     </div>
-  `;
+  `
 }
 
 function Dashboard({ bigText, setBigText, navigator }) {
   const initialTexts = (() => {
-    const textsJson = localStorage.getItem("texts");
+    const textsJson = localStorage.getItem("texts")
     if (textsJson) {
-      return JSON.parse(textsJson);
+      return JSON.parse(textsJson)
     }
-    return [];
-  })();
+    return []
+  })()
 
-  const [texts, setTexts] = useState(initialTexts);
-  const bigTextRef = useRef(null);
+  const [texts, setTexts] = useState(initialTexts)
+  const bigTextRef = useRef(null)
 
   const clearHistory = () => {
-    setTexts([]);
-    localStorage.removeItem("texts");
-  };
+    setTexts([])
+    localStorage.removeItem("texts")
+  }
 
   const resetForm = () => {
-    setBigText("");
+    setBigText("")
     if (bigTextRef.current) {
-      bigTextRef.current.textContent = "";
+      bigTextRef.current.textContent = ""
     }
-  };
+  }
 
   const submitForm = () => {
     const text = {
       content: bigText,
       isFavorite: false,
-    };
-    localStorage.setItem("texts", JSON.stringify([text, ...texts]));
-    navigator.bigText();
-  };
+    }
+    localStorage.setItem("texts", JSON.stringify([text, ...texts]))
+    navigator.bigText()
+  }
 
   return html`
     <div class="min-h-screen flex justify-center px-4">
@@ -75,7 +73,7 @@ function Dashboard({ bigText, setBigText, navigator }) {
               </div>
             `}
           </div>
-          ${!!texts.length
+          ${texts.length
             ? texts.map((t) => html`<${BigTextsListItem} text=${t} />`)
             : html`<${EmptyBigTextsList} />`}
         </div>
@@ -83,9 +81,7 @@ function Dashboard({ bigText, setBigText, navigator }) {
         <div class="bg-stone-500 rounded-full my-5 p-4">
           <input type="hidden" name="big-text" />
           <div class="flex items-center gap-1">
-            <span
-              class="bg-none border-none text-white cursor-pointer px-1"
-              onClick="${resetForm}"
+            <span class="bg-none border-none text-white cursor-pointer px-1" onClick="${resetForm}"
               >×</span
             >
             <div
@@ -106,62 +102,58 @@ function Dashboard({ bigText, setBigText, navigator }) {
         </div>
       </div>
     </div>
-  `;
+  `
 }
 
 function BigText({ bigText, navigator }) {
-  const bigTextDisplayRef = useRef(null);
-  const bigTextRef = useRef(null);
-  const [bigTextFontSize, setBigTextFontSize] = useState(100);
+  const bigTextDisplayRef = useRef(null)
+  const bigTextRef = useRef(null)
 
   const fontSize = () => {
-    bigTextRef.current.style.fontSize = "100px";
-    const scaleFactor =
-      bigTextDisplayRef.current.clientWidth / bigTextRef.current.scrollWidth;
-    return Math.round(100 * scaleFactor);
-  };
+    bigTextRef.current.style.fontSize = "100px"
+    const scaleFactor = bigTextDisplayRef.current.clientWidth / bigTextRef.current.scrollWidth
+    return Math.round(100 * scaleFactor)
+  }
 
   const onResize = () => {
-    bigTextRef.current.style.fontSize = `${fontSize()}px`;
-  };
+    bigTextRef.current.style.fontSize = `${fontSize()}px`
+  }
 
   useEffect(() => {
-    window.addEventListener("resize", onResize);
-    return () => window.removeEventListener("resize", onResize);
-  }, []);
+    window.addEventListener("resize", onResize)
+    return () => window.removeEventListener("resize", onResize)
+  }, [])
 
   useEffect(() => {
-    bigTextRef.current.style.fontSize = `${fontSize()}px`;
-  }, [bigText]);
+    bigTextRef.current.style.fontSize = `${fontSize()}px`
+  }, [bigText])
 
   function openFullscreen(elem) {
     if (elem.requestFullscreen) {
-      elem.requestFullscreen();
+      elem.requestFullscreen()
     } else if (elem.webkitRequestFullscreen) {
       /* Safari */
-      elem.webkitRequestFullscreen();
+      elem.webkitRequestFullscreen()
     } else if (elem.msRequestFullscreen) {
       /* IE11 */
-      elem.msRequestFullscreen();
+      elem.msRequestFullscreen()
     }
   }
 
   function closeFullscreen() {
     if (document.exitFullscreen) {
-      document.exitFullscreen();
+      document.exitFullscreen()
     } else if (document.webkitExitFullscreen) {
       /* Safari */
-      document.webkitExitFullscreen();
+      document.webkitExitFullscreen()
     } else if (document.msExitFullscreen) {
       /* IE11 */
-      document.msExitFullscreen();
+      document.msExitFullscreen()
     }
   }
 
   const toggleFullScreen = () =>
-    !document.fullscreenElement
-      ? openFullscreen(bigTextDisplayRef.current)
-      : closeFullscreen();
+    !document.fullscreenElement ? openFullscreen(bigTextDisplayRef.current) : closeFullscreen()
 
   return html`
     <div
@@ -180,38 +172,32 @@ function BigText({ bigText, navigator }) {
       >
         ⛶
       </button>
-      <p ref="${bigTextRef}" class="text-center font-bold leading-none">
-        ${bigText}
-      </p>
+      <p ref="${bigTextRef}" class="text-center font-bold leading-none">${bigText}</p>
     </div>
-  `;
+  `
 }
 
 function App() {
-  const [bigText, setBigText] = useState("dashboard");
-  const [currentPage, setCurrentPage] = useState("dashboard");
+  const [bigText, setBigText] = useState("dashboard")
+  const [currentPage, setCurrentPage] = useState("dashboard")
   const navigator = {
     dashboard: () => {
-      setCurrentPage("dashboard");
+      setCurrentPage("dashboard")
     },
     bigText: () => {
-      setCurrentPage("bigText");
+      setCurrentPage("bigText")
     },
-  };
+  }
 
   if (currentPage === "bigText") {
-    return html`<${BigText} bigText="${bigText}" navigator="${navigator}" />`;
+    return html`<${BigText} bigText="${bigText}" navigator="${navigator}" />`
   }
 
   return html`
-    <${Dashboard}
-      bigText="${bigText}"
-      setBigText="${setBigText}"
-      navigator="${navigator}"
-    />
-  `;
+    <${Dashboard} bigText="${bigText}" setBigText="${setBigText}" navigator="${navigator}" />
+  `
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-  render(html`<${App} />`, document.body);
-});
+  render(html`<${App} />`, document.body)
+})

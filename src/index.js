@@ -2,7 +2,7 @@ import { html, render, useState, useEffect, useRef } from "preact";
 
 function BigTextsListItem({ text }) {
   return html`
-    <div class="bg-stone-600 rounded-full w-100 grow my-5 p-2">
+    <div class="bg-stone-600 rounded-full grow my-5 p-2">
       <div class="flex items-center gap-1 px-1">
         <span>${text.content}</span>
         <div class="flex ml-auto gap-1">
@@ -61,45 +61,47 @@ function Dashboard({ bigText, setBigText, navigator }) {
   };
 
   return html`
-    <div class="h-screen flex flex-col items-center">
-      <div class="overflow-y-auto flex-1 w-100 my-5">
-        <div class="flex text-left">
-          <h3>My BIG texts</h3>
-          ${!!texts.length &&
-          html`
+    <div class="min-h-screen flex justify-center px-4">
+      <div class="flex flex-col w-full sm:w-1/2 lg:w-1/3 space-y-4">
+        <div class="overflow-y-auto flex-1 my-5">
+          <div class="flex text-left">
+            <h3>My BIG texts</h3>
+            ${!!texts.length &&
+            html`
+              <div class="ml-auto">
+                <button class="cursor-pointer" onClick=${() => clearHistory()}>
+                  Clear History
+                </button>
+              </div>
+            `}
+          </div>
+          ${!!texts.length
+            ? texts.map((t) => html`<${BigTextsListItem} text=${t} />`)
+            : html`<${EmptyBigTextsList} />`}
+        </div>
+
+        <div class="bg-stone-500 rounded-full my-5 p-4">
+          <input type="hidden" name="big-text" />
+          <div class="flex items-center gap-1">
+            <span
+              class="bg-none border-none text-white cursor-pointer px-1"
+              onClick="${resetForm}"
+              >×</span
+            >
+            <div
+              class="grow"
+              contenteditable
+              ref="${bigTextRef}"
+              onInput="${(e) => setBigText(e.target.textContent)}"
+            ></div>
             <div class="ml-auto">
-              <button class="cursor-pointer" onClick=${() => clearHistory()}>
-                Clear History
+              <button
+                class="bg-none border-none text-white cursor-pointer px-2"
+                onClick="${submitForm}"
+              >
+                ➤
               </button>
             </div>
-          `}
-        </div>
-        ${!!texts.length
-          ? texts.map((t) => html`<${BigTextsListItem} text=${t} />`)
-          : html`<${EmptyBigTextsList} />`}
-      </div>
-
-      <div class="w-100 bg-stone-500 rounded-full my-5 p-4">
-        <input type="hidden" name="big-text" />
-        <div class="flex items-center gap-1">
-          <span
-            class="bg-none border-none text-white cursor-pointer px-1"
-            onClick="${resetForm}"
-            >×</span
-          >
-          <div
-            class="grow"
-            contenteditable
-            ref="${bigTextRef}"
-            onInput="${(e) => setBigText(e.target.textContent)}"
-          ></div>
-          <div class="ml-auto">
-            <button
-              class="bg-none border-none text-white cursor-pointer px-2"
-              onClick="${submitForm}"
-            >
-              ➤
-            </button>
           </div>
         </div>
       </div>

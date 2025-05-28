@@ -4,7 +4,9 @@
     "tailwindcss": "^4.1.7"
   },
   "scripts": {
-    "dev": "npx @tailwindcss/cli -i ./src/styles.css -o ./dist/styles.css --watch"
+    "build:css": "npx @tailwindcss/cli -i ./src/styles.css -o ./dist/styles.css",
+    "build": "npm run build:css",
+    "dev": "npm run build:css -- --watch"
   },
   "devDependencies": {
     "@eslint/js": "^9.27.0",

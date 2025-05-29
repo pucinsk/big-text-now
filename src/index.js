@@ -3,20 +3,27 @@ import useNavigation from "./useNavigation.js"
 import useJSONLocalStorage from "./useLocalStorage.js"
 import Modal from "./Modal.js"
 
-const BigTextsListItem = ({ text, onChange, onEdit }) => {
+const BigTextsListItem = ({ text, onChange, onEdit, onDelete }) => {
   return html`
     <div className="mt-5 rounded-full bg-stone-600 p-2">
       <div className="flex">
         <span onClick=${() => navigate("show", { bigText: text.content })} className="grow px-2"
           >${text.content.replace(/<br\s*\/?>/gi, "⏎")}</span
         >
-        <div className="ml-auto flex gap-1">
-          <button className="cursor-pointer border-none bg-none" onClick=${onEdit}>✏️</button>
+        <div className="ml-auto flex gap-2">
           <button
+            title="Favorite ${text.isFavorite ? '-' : '+'}"
+            type="button"
             className="cursor-pointer border-none bg-none"
             onClick=${() => onChange({ isFavorite: !text.isFavorite })}
           >
             ${text.isFavorite ? "⭐️" : "☆"}
+          </button>
+          <button title="Edit text" type="button" className="cursor-pointer border-none bg-none" onClick=${onEdit}>
+            ✏️
+          </button>
+          <button title="Delete text" type="button" className="cursor-pointer border-none bg-none" onClick=${onDelete}>
+            🗑️
           </button>
         </div>
       </div>
@@ -33,6 +40,12 @@ const BigTextsList = ({ texts, setTexts }) => {
     setFormOpen(true)
   }
 
+  const deleteItem = (index) => {
+    const updated = [...texts]
+    updated.splice(index, 1)
+    setTexts(updated)
+  }
+
   const updateText = ({ index, newText }) => {
     const updated = [...texts]
     updated[index] = { ...updated[index], ...newText }
@@ -45,6 +58,7 @@ const BigTextsList = ({ texts, setTexts }) => {
         html`<${BigTextsListItem}
           text=${text}
           onEdit=${() => openModal({ index, text })}
+          onDelete=${() => deleteItem(index)}
           onChange=${(changes) => updateText({ index, newText: changes })}
         />`,
     )}
@@ -81,7 +95,7 @@ const App = () => {
           <h3>My BIG texts</h3>
           <div hidden="${!texts.length}" className="ml-auto">
             <button type="button" className="cursor-pointer" onClick=${() => setTexts([])}>
-              Clear History
+              Clear History 🔥
             </button>
           </div>
         </div>

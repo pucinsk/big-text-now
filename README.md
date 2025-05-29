@@ -2,6 +2,9 @@
 
 Big Text Now is a simple web app that lets you type and display huge text — perfect for shouting messages across the room, holding up signs, or just making a point loud and clear.
 
+## ⚡️ Screenshots
+[<img src="https://github.com/user-attachments/assets/1fd521f9-0c7c-483f-92df-a24e785d05f0" width="350"/>](https://github.com/user-attachments/assets/1fd521f9-0c7c-483f-92df-a24e785d05f0)
+[<img src="https://github.com/user-attachments/assets/d6a2b787-5d08-4550-b2e6-980e752adba3" width="350"/>](https://github.com/user-attachments/assets/d6a2b787-5d08-4550-b2e6-980e752adba3)
 ## ⚡️ Features
 
 - 🧠 Type your message and see it in full-screen, dynamically scaled to fit  
@@ -22,3 +25,8 @@ Big Text Now is a simple web app that lets you type and display huge text — pe
 ## 🤔 Why?
 
 This started as a small utility to flash messages across a room during calls or in classrooms. It turned into a fun little project for experimenting with Preact, htm and dynamic font sizing.
+
+## ✏️ Roadmap
+
+- Finish CRUD operations for each text item
+- Allow to personalize font and background options

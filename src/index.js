@@ -3,25 +3,63 @@ import useNavigation from "./useNavigation.js"
 import useJSONLocalStorage from "./useLocalStorage.js"
 import Modal from "./Modal.js"
 
-const BigTextsListItem = ({ text, onChange }) => html`
-  <div className="mt-5 rounded-full bg-stone-600 p-2">
-    <div className="flex">
-      <span onClick=${() => navigate("show", { bigText: text.content })} className="grow px-2"
-        >${text.content.replace(/<br\s*\/?>/gi, "⏎")}</span
-      >
-      <div className="ml-auto flex gap-1">
-        <button className="cursor-pointer border-none bg-none text-white">✏️</button>
-        <button
-          className="cursor-pointer border-none bg-none text-white"
-          onClick=${() => onChange({ isFavorite: !text.isFavorite })}
+const BigTextsListItem = ({ text, onChange, onEdit }) => {
+  return html`
+    <div className="mt-5 rounded-full bg-stone-600 p-2">
+      <div className="flex">
+        <span onClick=${() => navigate("show", { bigText: text.content })} className="grow px-2"
+          >${text.content.replace(/<br\s*\/?>/gi, "⏎")}</span
         >
-          ${text.isFavorite ? "⭐️" : "☆"}
-        </button>
+        <div className="ml-auto flex gap-1">
+          <button className="cursor-pointer border-none bg-none" onClick=${onEdit}>✏️</button>
+          <button
+            className="cursor-pointer border-none bg-none"
+            onClick=${() => onChange({ isFavorite: !text.isFavorite })}
+          >
+            ${text.isFavorite ? "⭐️" : "☆"}
+          </button>
+        </div>
       </div>
     </div>
-  </div>
-`
+  `
+}
 
+const BigTextsList = ({ texts, setTexts }) => {
+  const [isFormOpen, setFormOpen] = useState(false)
+  const [bigText, setBigText] = useState(null)
+
+  const openModal = (currentBigText) => {
+    setBigText(currentBigText)
+    setFormOpen(true)
+  }
+
+  const updateText = ({ index, newText }) => {
+    const updated = [...texts]
+    updated[index] = { ...updated[index], ...newText }
+    setTexts(updated)
+  }
+
+  return html`
+    ${texts.map(
+      (text, index) =>
+        html`<${BigTextsListItem}
+          text=${text}
+          onEdit=${() => openModal({ index, text })}
+          onChange=${(changes) => updateText({ index, newText: changes })}
+        />`,
+    )}
+    ${isFormOpen &&
+    bigText &&
+    html`
+      <${Modal}
+        isOpen="${isFormOpen}"
+        onSubmit="${(newText) => updateText({ index: bigText.index, newText })}"
+        onClose=${() => setFormOpen(false)}
+        bigText=${bigText.text}
+      />
+    `}
+  `
+}
 const [setItems, getItems] = useJSONLocalStorage("texts")
 
 const App = () => {
@@ -29,12 +67,6 @@ const App = () => {
   const [texts, setTexts] = useState(getItems())
 
   useEffect(() => setItems(texts), [texts])
-
-  const updateText = (index, newText) => {
-    const updated = [...texts]
-    updated[index] = { ...updated[index], ...newText }
-    setTexts(updated)
-  }
 
   const submitForm = (text) => {
     setItems([text, ...texts])
@@ -48,18 +80,14 @@ const App = () => {
         <div className="flex text-left">
           <h3>My BIG texts</h3>
           <div hidden="${!texts.length}" className="ml-auto">
-            <button type="button" className="cursor-pointer" onClick=${() => setTexts([])}>Clear History</button>
+            <button type="button" className="cursor-pointer" onClick=${() => setTexts([])}>
+              Clear History
+            </button>
           </div>
         </div>
         <div className="grow overflow-y-auto">
           ${texts.length
-            ? texts.map(
-                (t, i) =>
-                  html`<${BigTextsListItem}
-                    text=${t}
-                    onChange="${(changes) => updateText(i, changes)}"
-                  />`,
-              )
+            ? html`<${BigTextsList} texts=${texts} setTexts=${setTexts} />`
             : html`
                 <div className="mt-10 flex flex-col items-center">
                   <h3 className="font-bold">You have no Big Texts yet</h3>
@@ -69,7 +97,13 @@ const App = () => {
                 </div>
               `}
         </div>
-        <button type="button" className="cursor-pointer" onClick=${() => setFormOpen(!isFormOpen)}>Add BIG TEXT NOW</button>
+        <button
+          type="button"
+          className="cursor-pointer bg-stone-500 py-2 rounded-full"
+          onClick=${() => setFormOpen(!isFormOpen)}
+        >
+          Add BIG TEXT NOW
+        </button>
         <${Modal}
           isOpen="${isFormOpen}"
           onSubmit="${submitForm}"

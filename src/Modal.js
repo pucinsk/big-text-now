@@ -1,7 +1,7 @@
 import { html, useEffect, useRef } from "preact"
 import { isDesktop } from "./utils.js"
 
-const Modal = ({ isOpen, onClose, onSubmit }) => {
+const Modal = ({ isOpen, onClose, onSubmit, bigText } = { bigText: null }) => {
   const bigTextRef = useRef(null)
 
   const reset = () => {
@@ -31,6 +31,7 @@ const Modal = ({ isOpen, onClose, onSubmit }) => {
 
   useEffect(() => {
     if (!isOpen) return
+    if (bigText) bigTextRef.current.innerHTML = bigText.content
 
     const handleEscape = (e) => e.key === "Escape" && cancel()
     window.addEventListener("keydown", handleEscape)
@@ -61,12 +62,7 @@ const Modal = ({ isOpen, onClose, onSubmit }) => {
             >
               ×
             </button>
-            <div
-              className="grow"
-              contenteditable
-              ref=${bigTextRef}
-              onKeyPress=${handleEnter}
-            />
+            <div className="grow" contenteditable ref=${bigTextRef} onKeyPress=${handleEnter} />
             <div className="flex items-center justify-center ml-auto">
               <button type="submit" className="cursor-pointer border-none bg-none px-2 text-white">
                 ➤

@@ -185,6 +185,9 @@
   .relative {
     position: relative;
   }
+  .static {
+    position: static;
+  }
   .inset-0 {
     inset: calc(var(--spacing) * 0);
   }
@@ -211,6 +214,9 @@
   }
   .ml-auto {
     margin-left: auto;
+  }
+  .contents {
+    display: contents;
   }
   .flex {
     display: flex;

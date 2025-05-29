@@ -1,94 +1,34 @@
 import { html, useState, useEffect, useRef } from "preact"
 import useNavigation from "./useNavigation.js"
+import useJSONLocalStorage from "./useLocalStorage.js"
+import Modal from "./Modal.js"
 
-const BigTextsListItem = ({ text, onChange }) => {
-  const toggleIsFavorite = () => onChange({ isFavorite: !text.isFavorite })
-
-  return html`
-    <div className="mt-5 rounded-full bg-stone-600 p-2">
-      <div className="flex">
-        <span onClick="${() => navigate("show", { bigText: text.content })}" className="grow px-2"
-          >${text.content.replace(/<br\s*\/?>/gi, "⏎")}</span
+const BigTextsListItem = ({ text, onChange }) => html`
+  <div className="mt-5 rounded-full bg-stone-600 p-2">
+    <div className="flex">
+      <span onClick=${() => navigate("show", { bigText: text.content })} className="grow px-2"
+        >${text.content.replace(/<br\s*\/?>/gi, "⏎")}</span
+      >
+      <div className="ml-auto flex gap-1">
+        <button className="cursor-pointer border-none bg-none text-white">✏️</button>
+        <button
+          className="cursor-pointer border-none bg-none text-white"
+          onClick=${() => onChange({ isFavorite: !text.isFavorite })}
         >
-        <div className="ml-auto flex gap-1">
-          <button className="cursor-pointer border-none bg-none text-white">✏️</button>
-          <button
-            className="cursor-pointer border-none bg-none text-white"
-            onClick="${toggleIsFavorite}"
-          >
-            ${text.isFavorite ? "⭐️" : "☆"}
-          </button>
-        </div>
+          ${text.isFavorite ? "⭐️" : "☆"}
+        </button>
       </div>
     </div>
-  `
-}
-
-const EmptyBigTextsList = ({ onAddTextClick }) => html`
-  <div className="mt-10 flex flex-col items-center">
-    <h3 className="font-bold">You have no Big Texts yet</h3>
-    <span className="cursor-pointer" onClick="${onAddTextClick}">Add new now</span>
   </div>
 `
 
-const BigTextForm = ({ bigTextRef, onSubmit }) => {
-  const isMobileOrTablet = () =>
-    /Mobi|Android|iPhone|iPad|iPod|Tablet|Mobile/i.test(navigator.userAgent)
-
-  const submitForm = () => {
-    onSubmit({
-      content: bigTextRef.current.innerHTML,
-      isFavorite: false,
-    })
-  }
-  const onKeyPress = (e) => {
-    if (!isMobileOrTablet() && e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault()
-      submitForm()
-    }
-  }
-
-  return html`
-    <div className="mt-5 flex flex-col justify-center rounded-full bg-stone-500 p-2">
-      <div className="flex">
-        <span
-          className="flex items-center justify-center cursor-pointer border-none bg-none px-2 text-white"
-          onClick="${() => (bigTextRef.current.textContent = "")}"
-          >×</span
-        >
-        <div className="grow" contenteditable ref="${bigTextRef}" onKeyPress="${onKeyPress}"></div>
-        <div className="flex items-center justify-center ml-auto">
-          <button
-            className="cursor-pointer border-none bg-none px-2 text-white"
-            onClick="${submitForm}"
-          >
-            ➤
-          </button>
-        </div>
-      </div>
-    </div>
-  `
-}
-
-const getInitialTexts = () => {
-  try {
-    return JSON.parse(localStorage.getItem("texts")) || []
-  } catch (e) {
-    console.warn("Corrupted localStorage:", e)
-    return []
-  }
-}
+const [setItems, getItems] = useJSONLocalStorage("texts")
 
 const App = () => {
-  const [texts, setTexts] = useState(getInitialTexts)
-  const bigTextRef = useRef(null)
-  const updateTextsLS = (newTexts) => localStorage.setItem("texts", JSON.stringify(newTexts))
+  const [isFormOpen, setFormOpen] = useState(false)
+  const [texts, setTexts] = useState(getItems())
 
-  useEffect(() => {
-    if (!texts.length) bigTextRef.current?.focus()
-  }, [])
-
-  useEffect(() => updateTextsLS(texts), [texts])
+  useEffect(() => setItems(texts), [texts])
 
   const updateText = (index, newText) => {
     const updated = [...texts]
@@ -97,7 +37,8 @@ const App = () => {
   }
 
   const submitForm = (text) => {
-    updateTextsLS([text, ...texts])
+    setItems([text, ...texts])
+    setFormOpen(false)
     navigate("show", { bigText: text.content })
   }
 
@@ -119,9 +60,21 @@ const App = () => {
                     onChange="${(changes) => updateText(i, changes)}"
                   />`,
               )
-            : html`<${EmptyBigTextsList} onAddTextClick="${() => bigTextRef.current?.focus()}" />`}
+            : html`
+                <div className="mt-10 flex flex-col items-center">
+                  <h3 className="font-bold">You have no Big Texts yet</h3>
+                  <span className="cursor-pointer" onClick=${() => setFormOpen(!isFormOpen)}
+                    >Add new now</span
+                  >
+                </div>
+              `}
         </div>
-        ${html`<${BigTextForm} bigTextRef="${bigTextRef}" onSubmit="${submitForm}" />`}
+        <button onClick=${() => setFormOpen(!isFormOpen)}>Add BIG TEXT NOW</button>
+        <${Modal}
+          isOpen="${isFormOpen}"
+          onSubmit="${submitForm}"
+          onClose=${() => setFormOpen(false)}
+        />
       </div>
     </div>
   `
@@ -174,18 +127,18 @@ const BigText = () => {
 
   return html`
     <div
-      ref="${bigTextDisplayRef}"
+      ref=${bigTextDisplayRef}
       className="flex h-screen w-full flex-col items-center justify-center overflow-hidden bg-stone-700 p-4"
     >
       <button
-        onClick="${() => navigate("")}"
+        onClick=${() => navigate("")}
         className="absolute top-0 left-0 cursor-pointer border-none bg-none p-5 text-white"
       >
         ×
       </button>
       <button
         className="absolute right-0 bottom-0 cursor-pointer border-none bg-none p-5 text-white"
-        onClick="${toggleFullScreen}"
+        onClick=${toggleFullScreen}
       >
         ⛶
       </button>

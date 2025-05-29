@@ -4,7 +4,11 @@ Big Text Now is a simple web app that lets you type and display huge text — pe
 
 ## ⚡️ Screenshots
 [<img src="https://github.com/user-attachments/assets/1fd521f9-0c7c-483f-92df-a24e785d05f0" width="350"/>](https://github.com/user-attachments/assets/1fd521f9-0c7c-483f-92df-a24e785d05f0)
-[<img src="https://github.com/user-attachments/assets/d6a2b787-5d08-4550-b2e6-980e752adba3" width="350"/>](https://github.com/user-attachments/assets/d6a2b787-5d08-4550-b2e6-980e752adba3)
+[<img src="https://github.com/user-attachments/assets/83a95bbb-bc94-4bab-a1be-544ae6a0015d" width="350"/>](https://github.com/user-attachments/assets/83a95bbb-bc94-4bab-a1be-544ae6a0015d)
+[<img src="https://github.com/user-attachments/assets/43bf8452-6861-404f-9f63-2c8ce82ab458" width="350"/>](https://github.com/user-attachments/assets/43bf8452-6861-404f-9f63-2c8ce82ab458)
+
+
+
 ## ⚡️ Features
 
 - 🧠 Type your message and see it in full-screen, dynamically scaled to fit  

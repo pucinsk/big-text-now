@@ -11,19 +11,19 @@ Big Text Now is a simple web app that lets you type and display huge text — pe
 
 ## ⚡️ Features
 
-- 🧠 Type your message and see it in full-screen, dynamically scaled to fit  
-- ⭐️ Mark messages as favorites  
-- 🗂 Browse, or clear your message history  
-- 💾 Stored in localStorage — no account or backend needed  
+- 🧠 Type your message and see it in full-screen, dynamically scaled to fit!
+- ⭐️ Mark messages as favorites
+- 🗂 Browse, or clear your message history
+- 💾 Stored in localStorage — no account or backend needed
 - 📱 Mobile-friendly interface
-- 🪄 Clean and modern UI with dark background and Tailwind styling 
+- 🪄 Clean and modern UI with dark background and Tailwind styling
 
 ## 🛠 Built With
 
-- **[Preact](https://preactjs.com/)** – Lightweight React alternative  
-- **Tailwind CSS** – Utility-first CSS framework  
-- **HTML Dialog Element** – For modals with full-screen support and escape-to-close  
-- **localStorage** – Persistence for your messages  
+- **[Preact](https://preactjs.com/)** – Lightweight React alternative
+- **Tailwind CSS** – Utility-first CSS framework
+- **HTML Dialog Element** – For modals with full-screen support and escape-to-close
+- **localStorage** – Persistence for your messages
 - **Vanilla JavaScript** – No framework bloat
 
 ## 🤔 Why?

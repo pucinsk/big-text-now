@@ -1,4 +1,5 @@
-import { html, render, useState, useEffect, useRef } from "preact"
+import { html, useState, useEffect, useRef } from "preact"
+import useNavigation from "./useNavigation.js"
 
 const BigTextsListItem = ({ text, onChange }) => {
   const toggleIsFavorite = () => onChange({ isFavorite: !text.isFavorite })
@@ -31,15 +32,17 @@ const EmptyBigTextsList = ({ onAddTextClick }) => html`
 `
 
 const BigTextForm = ({ bigTextRef, onSubmit }) => {
+  const isMobileOrTablet = () =>
+    /Mobi|Android|iPhone|iPad|iPod|Tablet|Mobile/i.test(navigator.userAgent)
+
   const submitForm = () => {
-    console.log(bigTextRef.current.innerText)
     onSubmit({
       content: bigTextRef.current.innerHTML,
       isFavorite: false,
     })
   }
   const onKeyPress = (e) => {
-    if (e.key === "Enter" && !e.shiftKey) {
+    if (!isMobileOrTablet() && e.key === "Enter" && !e.shiftKey) {
       e.preventDefault()
       submitForm()
     }
@@ -49,12 +52,12 @@ const BigTextForm = ({ bigTextRef, onSubmit }) => {
     <div className="mt-5 flex flex-col justify-center rounded-full bg-stone-500 p-2">
       <div className="flex">
         <span
-          className="cursor-pointer border-none bg-none px-2 text-white"
+          className="flex items-center justify-center cursor-pointer border-none bg-none px-2 text-white"
           onClick="${() => (bigTextRef.current.textContent = "")}"
           >×</span
         >
         <div className="grow" contenteditable ref="${bigTextRef}" onKeyPress="${onKeyPress}"></div>
-        <div className="ml-auto">
+        <div className="flex items-center justify-center ml-auto">
           <button
             className="cursor-pointer border-none bg-none px-2 text-white"
             onClick="${submitForm}"
@@ -195,40 +198,12 @@ const BigText = () => {
   `
 }
 
-const routes = {
+const [navigate, renderRoute, handleRedirect] = useNavigation({
   "/": App,
   "/show": BigText,
-}
+})
 
-const getPathPrefix = () => (location.origin.includes("github.io") ? "/big-text-now" : "")
-
-const buildPath = (path) => `${getPathPrefix()}/${path}`
-const pathname = () => location.pathname.replace(getPathPrefix(), "")
-
-const navigate = (path, params = {}) => {
-  const url = new URL(buildPath(path), location.origin)
-  Object.entries(params).forEach(([key, value]) => {
-    url.searchParams.set(key, value)
-  })
-  history.pushState({}, "", url)
-  renderRoute()
-}
-
-const renderRoute = () => {
-  const routeComponent = routes[pathname()]
-  render(
-    routeComponent ? html`<${routeComponent} />` : html`<h1>404 - Page not found</h1>`,
-    document.body,
-  )
-}
-
-const params = new URLSearchParams(location.search)
-const redirectedPath = params.get("redirect")
-
-if (redirectedPath) {
-  history.replaceState(null, "", redirectedPath)
-}
+handleRedirect()
+renderRoute()
 
 window.addEventListener("popstate", renderRoute)
-
-renderRoute()

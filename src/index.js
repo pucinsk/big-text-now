@@ -48,7 +48,7 @@ const App = () => {
         <div className="flex text-left">
           <h3>My BIG texts</h3>
           <div hidden="${!texts.length}" className="ml-auto">
-            <button className="cursor-pointer" onClick=${() => setTexts([])}>Clear History</button>
+            <button type="button" className="cursor-pointer" onClick=${() => setTexts([])}>Clear History</button>
           </div>
         </div>
         <div className="grow overflow-y-auto">
@@ -63,13 +63,13 @@ const App = () => {
             : html`
                 <div className="mt-10 flex flex-col items-center">
                   <h3 className="font-bold">You have no Big Texts yet</h3>
-                  <span className="cursor-pointer" onClick=${() => setFormOpen(!isFormOpen)}
+                  <button type="button" className="cursor-pointer" onClick=${() => setFormOpen(!isFormOpen)}
                     >Add new now</span
                   >
                 </div>
               `}
         </div>
-        <button onClick=${() => setFormOpen(!isFormOpen)}>Add BIG TEXT NOW</button>
+        <button type="button" className="cursor-pointer" onClick=${() => setFormOpen(!isFormOpen)}>Add BIG TEXT NOW</button>
         <${Modal}
           isOpen="${isFormOpen}"
           onSubmit="${submitForm}"
